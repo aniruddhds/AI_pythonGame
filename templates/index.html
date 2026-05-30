@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TETRIS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="board-wrapper">
+            <canvas id="gameCanvas" width="340" height="680"></canvas>
+        </div>
+        <div class="sidebar">
+            <h1>TETRIS</h1>
+            
+            <div class="info-box">
+                <div class="info-label">SCORE</div>
+                <div class="info-value" id="score">0</div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-label">LEVEL</div>
+                <div class="info-value" id="level">1</div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-label">LINES</div>
+                <div class="info-value" id="lines">0</div>
+            </div>
+
+            <div class="next-box">
+                <div class="info-label">NEXT</div>
+                <canvas id="nextCanvas" width="160" height="160"></canvas>
+            </div>
+
+            <div class="controls">
+                <div class="control-item">
+                    <span class="control-key">← →</span>
+                    <span class="control-action">Move</span>
+                </div>
+                <div class="control-item">
+                    <span class="control-key">↑ / X</span>
+                    <span class="control-action">Rotate CW</span>
+                </div>
+                <div class="control-item">
+                    <span class="control-key">Z</span>
+                    <span class="control-action">Rotate CCW</span>
+                </div>
+                <div class="control-item">
+                    <span class="control-key">↓</span>
+                    <span class="control-action">Soft drop</span>
+                </div>
+                <div class="control-item">
+                    <span class="control-key">SPC</span>
+                    <span class="control-action">Hard drop</span>
+                </div>
+                <div class="control-item">
+                    <span class="control-key">P</span>
+                    <span class="control-action">Pause</span>
+                </div>
+                <div class="control-item">
+                    <span class="control-key">R</span>
+                    <span class="control-action">Restart</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #0D0D14;
+    font-family: "Courier New", monospace;
+    color: #E0E0FF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    display: flex;
+    gap: 30px;
+    background-color: #0D0D14;
+}
+
+.board-wrapper {
+    position: relative;
+}
+
+#gameCanvas {
+    background-color: #0D0D14;
+    border: 2px solid #00ECFF;
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.sidebar {
+    width: 200px;
+    background-color: #13131F;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #1A1A2E;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar h1 {
+    text-align: center;
+    color: #00ECFF;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.info-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 0;
+    border-bottom: 1px solid #1A1A2E;
+}
+
+.info-label {
+    font-size: 10px;
+    color: #E0E0FF;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.info-value {
+    font-size: 20px;
+    font-weight: bold;
+    color: #00ECFF;
+    text-align: right;
+}
+
+.next-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 0;
+}
+
+.next-box .info-label {
+    font-size: 10px;
+    color: #E0E0FF;
+}
+
+#nextCanvas {
+    background-color: #0D0D14;
+    border: 1px solid #1A1A2E;
+    margin-top: 8px;
+}
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #1A1A2E;
+}
+
+.control-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+}
+
+.control-key {
+    color: #00ECFF;
+    font-weight: bold;
+}
+
+.control-action {
+    color: #E0E0FF;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .sidebar {
+        width: 100%;
+        max-width: 300px;
+    }
+}
