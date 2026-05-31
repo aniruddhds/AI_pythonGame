@@ -25,6 +25,9 @@ let socket = io({
 });
 let gameState = null;
 let keys = {};
+let autoPlay = false;
+let botTarget = null;
+let botStepInterval = null;
 let gravityInterval = null;
 
 // ── Rendering ────────────────────────────────────────────────────────────────
@@ -161,6 +164,152 @@ function updateUI() {
     }
 }
 
+function copyBoard(board) {
+    return board.map(row => row.slice());
+}
+
+function validPosition(board, shape, rot, x, y) {
+    const cells = getPieceCells(shape, rot, x, y);
+    for (let [cx, cy] of cells) {
+        if (cx < 0 || cx >= COLS || cy >= ROWS) return false;
+        if (cy >= 0 && board[cy][cx]) return false;
+    }
+    return true;
+}
+
+function dropPosition(board, shape, rot, x, startY) {
+    let y = startY;
+    while (validPosition(board, shape, rot, x, y + 1)) {
+        y += 1;
+    }
+    return y;
+}
+
+function clearLines(board) {
+    const newBoard = board.filter(row => row.some(cell => !cell));
+    const cleared = ROWS - newBoard.length;
+    while (newBoard.length < ROWS) {
+        newBoard.unshift(Array(COLS).fill(null));
+    }
+    return {board: newBoard, cleared};
+}
+
+function evaluateBoard(board, cleared) {
+    let heights = Array(COLS).fill(0);
+    let holes = 0;
+    for (let x = 0; x < COLS; x++) {
+        let columnHeight = 0;
+        let foundBlock = false;
+        for (let y = 0; y < ROWS; y++) {
+            if (board[y][x]) {
+                if (!foundBlock) {
+                    foundBlock = true;
+                    columnHeight = ROWS - y;
+                }
+            } else if (foundBlock) {
+                holes += 1;
+            }
+        }
+        heights[x] = columnHeight;
+    }
+
+    let aggregateHeight = heights.reduce((a, b) => a + b, 0);
+    let bumpiness = 0;
+    for (let i = 0; i < COLS - 1; i++) {
+        bumpiness += Math.abs(heights[i] - heights[i + 1]);
+    }
+
+    return cleared * 1000 - holes * 40 - aggregateHeight * 10 - bumpiness * 5;
+}
+
+function simulatePlacement(state, shape, rot, x) {
+    if (!validPosition(state.board, shape, rot, x, state.y)) return null;
+    const y = dropPosition(state.board, shape, rot, x, state.y);
+    const board = copyBoard(state.board);
+    for (let [cx, cy] of getPieceCells(shape, rot, x, y)) {
+        if (cy >= 0) board[cy][cx] = shape;
+    }
+    const result = clearLines(board);
+    return {
+        board: result.board,
+        score: evaluateBoard(result.board, result.cleared),
+        cleared: result.cleared,
+        y,
+    };
+}
+
+function findBestPlacement(state) {
+    const shape = state.shape;
+    const rotations = {
+        I: 4, O: 1, T: 4, S: 4, Z: 4, J: 4, L: 4,
+    }[shape] || 4;
+
+    let best = null;
+    for (let rot = 0; rot < rotations; rot++) {
+        for (let x = -4; x < COLS + 4; x++) {
+            const placement = simulatePlacement(state, shape, rot, x);
+            if (!placement) continue;
+            const centerBias = -Math.abs(x - 4.5) * 3;
+            const score = placement.score + centerBias;
+            if (!best || score > best.score) {
+                best = {
+                    x,
+                    rot,
+                    score,
+                    y: placement.y,
+                    cleared: placement.cleared,
+                };
+            }
+        }
+    }
+    return best;
+}
+
+function normalizeRotation(current, target) {
+    const diff = (target - current + 4) % 4;
+    if (diff === 0) return 0;
+    if (diff === 3) return -1;
+    return 1;
+}
+
+function updateBotTarget() {
+    if (!gameState || gameState.over || gameState.paused) {
+        botTarget = null;
+        return;
+    }
+    botTarget = findBestPlacement(gameState);
+}
+
+function botStep() {
+    if (!autoPlay || !gameState || gameState.over || gameState.paused) return;
+    updateBotTarget();
+    if (!botTarget) return;
+
+    if (gameState.rot !== botTarget.rot) {
+        const direction = normalizeRotation(gameState.rot, botTarget.rot);
+        socket.emit('rotate', {direction});
+        return;
+    }
+    if (gameState.x < botTarget.x) {
+        socket.emit('move', {direction: 'right'});
+        return;
+    }
+    if (gameState.x > botTarget.x) {
+        socket.emit('move', {direction: 'left'});
+        return;
+    }
+    socket.emit('hard_drop');
+}
+
+function toggleBot() {
+    autoPlay = !autoPlay;
+    const button = document.getElementById('botToggle');
+    button.textContent = `Auto Play: ${autoPlay ? 'On' : 'Off'}`;
+    if (autoPlay) {
+        updateBotTarget();
+    }
+}
+
 function getPieceCells(shape, rot, x, y) {
     const TETROMINOES = {
         "I": [[[0,1],[1,1],[2,1],[3,1]], [[2,0],[2,1],[2,2],[2,3]], [[0,2],[1,2],[2,2],[3,2]], [[1,0],[1,1],[1,2],[1,3]]],
@@ -188,6 +337,9 @@ document.addEventListener('keyup', (e) => {
     const k = e.key.toLowerCase();
     keys[k] = false;
 });
+
+const botButton = document.getElementById('botToggle');
+if (botButton) botButton.addEventListener('click', toggleBot);
 
 function handleKey(k, isDown) {
     if (!isDown) return;
@@ -228,6 +380,9 @@ socket.on('connect', () => {
     gravityInterval = setInterval(() => {
         socket.emit('gravity');
     }, 100);
+    if (!botStepInterval) {
+        botStepInterval = setInterval(botStep, 80);
+    }
 });
 
 socket.on('disconnect', () => {

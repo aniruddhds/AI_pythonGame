@@ -112,6 +112,23 @@ body {
     font-weight: bold;
 }
 
+.control-button {
+    width: 100%;
+    background: #0D0D14;
+    color: #E0E0FF;
+    border: 1px solid #00ECFF;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.control-button:hover {
+    background: rgba(0, 236, 255, 0.08);
+    transform: translateY(-1px);
+}
+
 .control-action {
     color: #E0E0FF;
 }
