@@ -1,0 +1,24 @@
+flowchart TD
+    Browser[Browser UI]
+    SocketIO[Socket.IO Client]
+    Server[Flask + SocketIO Server]
+    Game[Tetris Game State]
+    Renderer[Canvas Renderer]
+    Input[Player / Bot Input]
+    Gravity[Gravity Tick]
+    Update[State Update Event]
+    Render[Render Frame]
+
+    Input -->|keyboard / bot| SocketIO
+    SocketIO -->|emit move/rotate/hard_drop| Server
+    Server -->|update game state| Game
+    Gravity -->|emit gravity| SocketIO
+    SocketIO -->|gravity event| Server
+    Game -->|new state| Update
+    Server -->|emit state| SocketIO
+    SocketIO -->|receive state| Browser
+    Browser -->|draw board| Renderer
+    Browser -->|update UI| Render
+    Game -->|lock / clear lines| Game
+    Update -->|refresh UI| Render
+    Server -->|uses game logic| Game

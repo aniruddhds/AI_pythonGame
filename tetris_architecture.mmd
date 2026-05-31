@@ -1,0 +1,25 @@
+graph LR
+    subgraph Frontend
+        A[Browser] --> B[HTML/CSS]
+        A --> C[script.js]
+        C --> D[Canvas Rendering]
+        C --> E[Socket.IO Client]
+        C --> F[Bot Logic]
+    end
+
+    subgraph Backend
+        G[Flask App]
+        G --> H[Socket.IO Server]
+        H --> I[Tetris Game Class]
+        I --> J[Game State Management]
+    end
+
+    B --> C
+    E -->|WebSocket / Polling| H
+    H -->|requests| I
+    I -->|state| H
+    J -->|emit updates| E
+    C -->|user events| E
+    F -->|auto-control commands| E
+    G -->|serves| B
+    G -->|serves| C
